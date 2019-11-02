@@ -7,10 +7,10 @@ object Family {
 }
 
 case class Family(override val id: String) extends Identifiable[String](id) {
-  val shifts = ListBuffer[Shift]()
-  val noCanDo = ListBuffer[Shift]()
-}
+  val shifts: ListBuffer[Shift] = ListBuffer[Shift]()
+  val noCanDo: ListBuffer[Shift] = ListBuffer[Shift]()
 
-//case class Shift(override val id: String, val shiftType: ShiftType, val family: String) extends Identifiable[String](id)
-//
-//case class ShiftType(val shiftType: String, val duration: Int)
+
+  def hasOrganise(n:Int):Boolean = shifts.filter(s => s.shiftType.shiftType.equals(Shift.TYPES.ORGANISE)).toList.size >= n
+  def hasGuard(n:Int):Boolean = shifts.filter(s => s.shiftType.shiftType.equals(Shift.TYPES.GUARD)).toList.size >= n
+}
