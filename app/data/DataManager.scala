@@ -10,8 +10,8 @@ class DataManager {
 
   def mockDay(n:Int):List[Shift] = List[Shift](
     Shift("o".concat(n.toString), ShiftType(Shift.NAMES.OPENING, Shift.TYPES.ORGANISE, 1.5), n, None),
-    Shift("m".concat(n.toString), ShiftType(Shift.NAMES.MORNING, Shift.TYPES.GUARD, 4.0), n, None),
-    Shift("a".concat(n.toString), ShiftType(Shift.NAMES.AFTERNOON, Shift.TYPES.GUARD, 4.0), n, None),
+    Shift("m".concat(n.toString), ShiftType(Shift.NAMES.MORNING_MOYENS, Shift.TYPES.GUARD, 4.0), n, None),
+    Shift("a".concat(n.toString), ShiftType(Shift.NAMES.AFTERNOON_MOYENS, Shift.TYPES.GUARD, 4.0), n, None),
     Shift("c".concat(n.toString), ShiftType(Shift.NAMES.CLOSING, Shift.TYPES.ORGANISE, 1.5), n, None)
   )
 
