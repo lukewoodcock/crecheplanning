@@ -1,11 +1,14 @@
 package services
 
+import java.util.Calendar
+
 import model.{Family, Shift, ShiftType}
+import utils.DateUtils
 
 object ShiftManager {
 
-  def removeByDate(families:List[Family], date:Int): List[Family] = families.filter(f =>
-    !f.shifts.toList.exists(fs => fs.date == date)
+  def removeByDate(families:List[Family], date:Calendar): List[Family] = families.filter(f =>
+    !f.shifts.toList.exists(fs => DateUtils.sameDay(fs.date, date))
   )
 
   def removeByShiftId(families:List[Family], id:String): List[Family] = families.filter(f =>
@@ -37,26 +40,6 @@ object ShiftManager {
       else {
         // get SHIFT type
         // find first family with NO shifts of that type for the week && no shifts that day
-//        val tata = contenders
-          // only take contenders with no shifts that day
-//          .filter(f =>
-//            !f.shifts.toList.exists(fs => fs.date == s.date)
-//          )
-
-//        val tata = removeByShiftCategory(
-//          removeByShiftId(
-//            removeByDate(contenders, s.date)
-//            , s.shiftType.id)
-//          , s.shiftType
-//          , s.shiftType match {
-//          case ShiftType(_, Shift.TYPES.ORGANISE, _) => 1
-//          case ShiftType(_, Shift.TYPES.GUARD, _) => 2
-//        })
-
-//        val date = removeByDate(contenders, s.date)
-//        if(date.isEmpty) {}
-
-
         val tata2 = removeByShiftId(
           removeByDate(contenders, s.date)
           , s.shiftType.id)
@@ -64,22 +47,6 @@ object ShiftManager {
           case ShiftType(_, Shift.TYPES.ORGANISE, _) => tata2.filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < 1)
           case ShiftType(_, Shift.TYPES.GUARD, _) => tata2.filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < 2)
         }
-          // only take contenders with no shifts of that id
-//          .filter(f =>
-//            !f.shifts.toList.exists(fs => {
-//              fs.shiftType.id.equals(s.shiftType.id)
-//            })
-//          )
-          // remove contenders that have already reached threshold for each shift type
-//          .filter(f =>
-//            s.shiftType match {
-//              case ShiftType(_, Shift.TYPES.ORGANISE, _) => !f.hasOrganise(1)
-//              case ShiftType(_, Shift.TYPES.GUARD, _) => !f.hasGuard(2)
-//            }
-//          )
-//          .filter(f =>
-//            f.shifts.size < 3
-//          )
 
         if(tata.nonEmpty) {
           tata.head.addShift(s)
@@ -93,19 +60,7 @@ object ShiftManager {
               (s, None)
             // find first family with only 1 GUARD
             case ShiftType(_, Shift.TYPES.GUARD, _) =>
-
-//              val titi = removeByShiftCategory(families, s.shiftType, 2)
-//              val titi = contenders.filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < 2)
               val titi = removeByDate(contenders, s.date).filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < 2)
-
-//              val titi = contenders
-//                .filter(f =>
-//                  f.shifts.count(fs =>
-//                    fs.shiftType match {
-//                      case ShiftType(_, Shift.TYPES.GUARD, _) => false
-//                      case _ => true
-//                    }) <= 1
-//                )
               if(titi.nonEmpty) {
                 titi.head.addShift(s)
                 (s, Some(titi.head))

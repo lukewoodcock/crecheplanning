@@ -1,5 +1,7 @@
 package model
 
+import java.util.Calendar
+
 object Shift {
 
   object NAMES {
@@ -15,6 +17,6 @@ object Shift {
     val ORGANISE = "ORGANISE"
   }
 }
-case class Shift(override val id: String, shiftType: ShiftType, date:Int, family: Option[Family]) extends Identifiable[String](id)
+case class Shift(override val id: String, shiftType: ShiftType, date:Calendar, family: Option[Family]) extends Identifiable[String](id)
 
 case class ShiftType(override val id: String, shiftType: String, duration: Double) extends Identifiable[String](id)
