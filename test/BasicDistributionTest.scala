@@ -322,15 +322,25 @@ class BasicDistributionTest extends FunSuite {
 //    }
 
     //TODO - from out, get families by name and create list of their shifts
-//    def f(shifts:List[Shift]):Map[Family, List[Shift]] = {
-      val l = out.groupBy(_._2).toList
+    def f(shifts:List[(Shift, Option[Family])]):Map[Family, List[Shift]] = {
+      var o = Map[Family, List[Shift]]()
+      val l = shifts.groupBy(_._2).toList
       for(g <- l) {
-        println(g._1 match {
-          case Some(value) => value.id.concat(" has ").concat(g._2.size.toString).concat(" ").concat(g._2.map(i => i._1.shiftType.id).toString())
-          case None => "No family"
-        })
+        g._1 match {
+          case Some(value) => {
+            println(value.id.concat(" has ").concat(g._2.size.toString).concat(" ").concat(g._2.map(i => i._1.shiftType.id).toString()))
+//            (value, g._2.map(i => i._1))
+            o += (value -> g._2.map(i => i._1))
+          }
+          case None => println("No family")
+        }
       }
-//    }
+      o
+    }
+
+    for(i <- f(out)) {
+      println(i._1)
+    }
 
 //    for(f <- families) {
 //      println("\n".concat(f.id))
