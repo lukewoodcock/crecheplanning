@@ -12,6 +12,7 @@ object Shift {
     val AFTERNOON_GRANDS = "AFTERNOON_GRANDS"
     val CLOSING = "CLOSING"
   }
+
   object TYPES {
     val GUARD = "GUARD"
     val ORGANISE = "ORGANISE"

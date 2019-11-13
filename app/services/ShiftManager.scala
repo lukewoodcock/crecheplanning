@@ -22,7 +22,7 @@ object ShiftManager {
     }) < limit
   )
 
-  def autoFill(shifts:List[Shift], families:List[Family]) : List[(Shift, Option[Family])] = {
+  def autoFill(shifts:List[Shift], families:List[Family], limits:Map[String, Int]) : List[(Shift, Option[Family])] = {
     for(s <- shifts) yield {
       // remove unavailable families
       val contenders = families.toList
@@ -44,8 +44,8 @@ object ShiftManager {
           removeByDate(contenders, s.date)
           , s.shiftType.id)
         val tata = s.shiftType match {
-          case ShiftType(_, Shift.TYPES.ORGANISE, _) => tata2.filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < 1)
-          case ShiftType(_, Shift.TYPES.GUARD, _) => tata2.filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < 2)
+          case ShiftType(_, Shift.TYPES.ORGANISE, _) => tata2.filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < limits.getOrElse(Shift.TYPES.ORGANISE, 0))
+          case ShiftType(_, Shift.TYPES.GUARD, _) => tata2.filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < limits.getOrElse(Shift.TYPES.GUARD, 0))
         }
 
         if(tata.nonEmpty) {

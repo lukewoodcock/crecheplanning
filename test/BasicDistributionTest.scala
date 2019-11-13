@@ -188,7 +188,7 @@ class BasicDistributionTest extends FunSuite {
     val families = mockFamilies()
     val shifts = mockWeek() //::: mockWeek(7) ::: mockWeek(14)
 
-    val out: List[(Shift, Option[Family])] = ShiftManager.autoFill(shifts, families)
+    val out: List[(Shift, Option[Family])] = ShiftManager.autoFill(shifts, families, Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1)))
 //    for(s <- out) {
 //      println("Shift:" + s._2.getOrElse("None"))
 //    }
@@ -227,7 +227,7 @@ class BasicDistributionTest extends FunSuite {
     val families = mockFamilies()
     val shifts = mockWeek(0) //::: mockWeek(7) ::: mockWeek(14)
 
-    val out: List[(Shift, Option[Family])] = ShiftManager.autoFill(mockWeek(0), Random.shuffle(mockFamilies())) ::: ShiftManager.autoFill(mockWeek(1), Random.shuffle(mockFamilies()))
+    val out: List[(Shift, Option[Family])] = ShiftManager.autoFill(mockWeek(0), Random.shuffle(mockFamilies()), Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1))) ::: ShiftManager.autoFill(mockWeek(1), Random.shuffle(mockFamilies()), Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1)))
 //        for(s <- out) {
 //          println("Shift:" + s._2.getOrElse("None"))
 //        }
@@ -268,7 +268,7 @@ class BasicDistributionTest extends FunSuite {
     val families = mockFamilies()
     val shifts = mockWeek(0)
 
-    val out: List[(Shift, Option[Family])] = ShiftManager.autoFill(shifts, families)
+    val out: List[(Shift, Option[Family])] = ShiftManager.autoFill(shifts, families, Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1)))
 //    for(s <- out) {
 //      println("Shift:" + s._2.getOrElse("None") + ", category = " + s._1.shiftType.shiftType)
 //    }
@@ -316,7 +316,7 @@ class BasicDistributionTest extends FunSuite {
 //    val families = mockFamilies()
 //    val shifts = mockWeek(0)
 
-    val out: List[(Shift, Option[Family])] = ShiftManager.autoFill(mockWeek(0), Random.shuffle(mockFamilies())) ::: ShiftManager.autoFill(mockWeek(1), Random.shuffle(mockFamilies())) ::: ShiftManager.autoFill(mockWeek(2), Random.shuffle(mockFamilies()))
+    val out: List[(Shift, Option[Family])] = ShiftManager.autoFill(mockWeek(0), Random.shuffle(mockFamilies()), Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1))) ::: ShiftManager.autoFill(mockWeek(1), Random.shuffle(mockFamilies()), Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1))) ::: ShiftManager.autoFill(mockWeek(2), Random.shuffle(mockFamilies()), Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1)))
 //    for(s <- out) {
 //      println("Shift:" + s)
 //    }
@@ -356,6 +356,9 @@ class BasicDistributionTest extends FunSuite {
 //    assert(!families.exists(f => f.shifts.size == 0))
 //    assert(!families.exists(f => f.shifts.count(s => s.shiftType.shiftType == Shift.TYPES.ORGANISE) > 1))
 //    assert(!families.exists(f => f.shifts.count(s => s.shiftType.shiftType == Shift.TYPES.GUARD) > 2))
+    //TODO write an assert
     //TODO write assert that no family has a >1 shift on the same day
+
+    assert(true == false)
   }
 }
