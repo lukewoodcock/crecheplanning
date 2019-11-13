@@ -60,7 +60,7 @@ object ShiftManager {
               (s, None)
             // find first family with only 1 GUARD
             case ShiftType(_, Shift.TYPES.GUARD, _) =>
-              val titi = removeByDate(contenders, s.date).filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < 2)
+              val titi = removeByDate(contenders, s.date).filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < limits.getOrElse(Shift.TYPES.GUARD, 0))
               if(titi.nonEmpty) {
                 titi.head.addShift(s)
                 (s, Some(titi.head))
