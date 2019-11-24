@@ -34,25 +34,25 @@ object ShiftManager {
 
 
       //find first family with no shifts for the week
-      val toto = contenders.filter(f => f.shifts.isEmpty)
-      if(toto.nonEmpty) {
-        toto.head.addShift(s)
-        (s, Some(toto.head))
+      val familyContenders = contenders.filter(f => f.shifts.isEmpty)
+      if(familyContenders.nonEmpty) {
+        familyContenders.head.addShift(s)
+        (s, Some(familyContenders.head))
       }
       else {
         // get SHIFT type
         // find first family with NO shifts of that type for the week && no shifts that day
-        val tata2 = removeByShiftId(
+        val contendersNoShiftsByTypeAndDay = removeByShiftId(
           removeByDate(contenders, s.date)
           , s.shiftType.id)
-        val tata = s.shiftType match {
-          case ShiftType(_, Shift.TYPES.ORGANISE, _) => tata2.filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < limits.getOrElse(Shift.TYPES.ORGANISE, 0))
-          case ShiftType(_, Shift.TYPES.GUARD, _) => tata2.filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < limits.getOrElse(Shift.TYPES.GUARD, 0))
+        val filteredResult = s.shiftType match {
+          case ShiftType(_, Shift.TYPES.ORGANISE, _) => contendersNoShiftsByTypeAndDay.filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < limits.getOrElse(Shift.TYPES.ORGANISE, 0))
+          case ShiftType(_, Shift.TYPES.GUARD, _) => contendersNoShiftsByTypeAndDay.filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < limits.getOrElse(Shift.TYPES.GUARD, 0))
         }
 
-        if(tata.nonEmpty) {
-          tata.head.addShift(s)
-          (s, Some(tata.head))
+        if(filteredResult.nonEmpty) {
+          filteredResult.head.addShift(s)
+          (s, Some(filteredResult.head))
         }
         else {
           s.shiftType match {
@@ -62,10 +62,10 @@ object ShiftManager {
               (s, None)
             // find first family with only 1 GUARD
             case ShiftType(_, Shift.TYPES.GUARD, _) =>
-              val titi = removeByDate(contenders, s.date).filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < limits.getOrElse(Shift.TYPES.GUARD, 0))
-              if(titi.nonEmpty) {
-                titi.head.addShift(s)
-                (s, Some(titi.head))
+              val pickedFamily = removeByDate(contenders, s.date).filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < limits.getOrElse(Shift.TYPES.GUARD, 0))
+              if(pickedFamily.nonEmpty) {
+                pickedFamily.head.addShift(s)
+                (s, Some(pickedFamily.head))
               }
               else (s, None)
           }
