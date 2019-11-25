@@ -17,7 +17,7 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
   val shifts: List[Shift] = dm.mockWeek()
   val families: List[Family] = dm.mockFamilies()
 
-  val result: List[(Shift, Option[Family])] = ShiftManager.autoFill(shifts, families, Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1)))
+  val result: List[(Shift, Option[Family])] = ShiftManager.greedyAutoFill(shifts, families, Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1)))
   for(s <- result) {
     println("Shift:" + s)
   }

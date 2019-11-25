@@ -3,7 +3,7 @@ package services
 import java.util.Calendar
 
 import model.{Family, Shift, ShiftType}
-import utils.DateUtils
+import utils.{DateUtils, TestUtils}
 
 import scala.util.control.Breaks.{break, breakable}
 
@@ -24,26 +24,69 @@ object ShiftManager {
     }) < limit
   )
 
-  def autoFill(shifts:List[Shift], families:List[Family], limits:Map[String, Int]) : List[(Shift, Option[Family])] = {
+  /**
+    * Assigns Family to Shifts
+    *
+    * @param shifts List of Shift to be assigned
+    * @param families List of Family to be assigned
+    * @param limits
+    * @return ._1 a list of unresolved (unassigned shifts), ._2 list of tuples where ._1 is an assigned shift and ._2 is Some(Family)
+    */
+  def autoFill(shifts:List[Shift], families:List[Family], limits:Map[String, Int], printProcess:Option[String] = None) : (List[Shift], List[(Shift, Option[Family])]) = {
+    printProcess match {
+      case Some(s) => {
+        println(s)
+        val autoFilledShifts = greedyAutoFill(shifts, families, limits)
+
+        println("\n\nAutofill results: ")
+        TestUtils.printShifts(autoFilledShifts)
+        println("\n")
+
+        val unassignedShifts = autoFilledShifts.filter(s => s._2.isEmpty)
+        println("unassigned shifts: ".concat(unassignedShifts.size.toString))
+
+        val assigned = autoFilledShifts.filterNot(unassignedShifts.contains(_))
+        println("assigned shifts: ".concat(assigned.size.toString()))
+
+        val out = ShiftManager.resolveUnassigned(unassignedShifts.map(_._1), assigned, List[Shift](), Map((Shift.TYPES.ORGANISE -> 1.5), (Shift.TYPES.GUARD -> 8.0)))
+
+        println("\n\n1st pass resolve unassigned results: ")
+        TestUtils.printShifts(out._1.map(s => (s, None)) ::: out._2)
+        println("\n")
+        println("assigned: ".concat(out._2.size.toString()))
+        println("unassigned: ".concat(out._1.size.toString()))
+        out
+      }
+      case None => {
+        val autoFilledShifts = greedyAutoFill(shifts, families, limits)
+        val unassignedShifts = autoFilledShifts.filter(s => s._2.isEmpty)
+        val assigned = autoFilledShifts.filterNot(unassignedShifts.contains(_))
+        ShiftManager.resolveUnassigned(unassignedShifts.map(_._1), assigned, List[Shift](), Map((Shift.TYPES.ORGANISE -> 1.5), (Shift.TYPES.GUARD -> 8.0)))
+      }
+    }
+  }
+
+  /**
+    * Tries to assigns Family to Shifts
+    *
+    * @param shifts List of Shift to be assigned
+    * @param families List of Family to be assigned
+    * @param limits
+    * @return ._1 is an shift and ._2 is Some(Family) or None if a shift is was not assigned
+    */
+  def greedyAutoFill(shifts:List[Shift], families:List[Family], limits:Map[String, Int]) : List[(Shift, Option[Family])] = {
     for(s <- shifts) yield {
-      // remove unavailable families
-      val contenders = families.toList
-      //        .filter(f =>
-      //          f.noCanDo.find(nS => nS.id == s.id).nonEmpty
-      //        )
-
-
       //find first family with no shifts for the week
-      val familyContenders = contenders.filter(f => f.shifts.isEmpty)
-      if(familyContenders.nonEmpty) {
-        familyContenders.head.addShift(s)
-        (s, Some(familyContenders.head))
+      val contenders = families.filter(f => f.shifts.isEmpty)
+      if(contenders.nonEmpty) {
+        contenders.head.addShift(s)
+        (s, Some(contenders.head))
       }
       else {
         // get SHIFT type
         // find first family with NO shifts of that type for the week && no shifts that day
         val contendersNoShiftsByTypeAndDay = removeByShiftId(
-          removeByDate(contenders, s.date)
+          removeByDate(families, s.date)
           , s.shiftType.id)
         val filteredResult = s.shiftType match {
           case ShiftType(_, Shift.TYPES.ORGANISE, _) => contendersNoShiftsByTypeAndDay.filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < limits.getOrElse(Shift.TYPES.ORGANISE, 0))
@@ -62,7 +105,7 @@ object ShiftManager {
               (s, None)
             // find first family with only 1 GUARD
             case ShiftType(_, Shift.TYPES.GUARD, _) =>
-              val pickedFamily = removeByDate(contenders, s.date).filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < limits.getOrElse(Shift.TYPES.GUARD, 0))
+              val pickedFamily = removeByDate(families, s.date).filter(f => f.shifts.toList.count(sh => sh.shiftType.shiftType == s.shiftType.shiftType) < limits.getOrElse(Shift.TYPES.GUARD, 0))
               if(pickedFamily.nonEmpty) {
                 pickedFamily.head.addShift(s)
                 (s, Some(pickedFamily.head))
@@ -71,68 +114,6 @@ object ShiftManager {
           }
         }
       }
-
-      //      //find first family with no shifts for the week
-      //      contenders.filter(f =>
-      //        f.shifts.isEmpty
-      //      ) match {
-      //        case head :: tail => {
-      //          head.shifts += s
-      //          (s, Some(head))
-      //        }
-      //        case head :: Nil => {
-      //          head.shifts += s
-      //          (s, Some(head))
-      //        }
-      //        case Nil => {
-      //          // get SHIFT type
-      //          // find first family with NO shifts of that type for the week && no shifts that dayx
-      //          contenders.filter(f =>
-      //            f.shifts
-      //              .filter(fs => fs.date != s.date)
-      //              .filter(fs => fs.shiftType != s.shiftType)
-      //              .isEmpty
-      //          ) match {
-      //            case head :: tail => {
-      //              head.shifts += s
-      //              (s, Some(head))
-      //            }
-      //            case head :: Nil => {
-      //              head.shifts += s
-      //              (s, Some(head))
-      //            }
-      //            case Nil => {
-      //              s.shiftType match {
-      //                // if SHIFT.TYPE is OPEN_CLOSE (threshold is 1 shift per week per child)
-      //                // FLAG for REQUEST_EXTRA
-      //                case ShiftType(Shift.OPENING, _) | ShiftType(Shift.CLOSING, _) => (s, None)
-      //                // find first family with only 1 GUARD
-      //                case _ => {
-      //                  contenders.filter(f =>
-      //                    f.shifts.filter(fs =>
-      //                      fs.shiftType match {
-      //                        case ShiftType(Shift.OPENING, _) | ShiftType(Shift.CLOSING, _) => false
-      //                        case _ => true
-      //                      }
-      //                    )
-      //                    .size <= 1
-      //                  ) match {
-      //                    case head :: tail => {
-      //                      head.shifts += s
-      //                      (s, Some(head))
-      //                    }
-      //                    case head :: Nil => {
-      //                      head.shifts += s
-      //                      (s, Some(head))
-      //                    }
-      //                    case Nil => (s, None)
-      //                  }
-      //                }
-      //              }
-      //            }
-      //          }
-      //        }
-      //      }
     }
   }
 
