@@ -32,7 +32,7 @@ object ShiftManager {
     * @param limits
     * @return ._1 a list of unresolved (unassigned shifts), ._2 list of tuples where ._1 is an assigned shift and ._2 is Some(Family)
     */
-  def autoFill(shifts:List[Shift], families:List[Family], limits:Map[String, Int], printProcess:Option[String] = None) : (List[Shift], List[(Shift, Option[Family])]) = {
+  def autoFillWeek(shifts:List[Shift], families:List[Family], limits:Map[String, Int], printProcess:Option[String] = None) : (List[Shift], List[(Shift, Option[Family])]) = {
     printProcess match {
       case Some(s) => {
         println(s)
