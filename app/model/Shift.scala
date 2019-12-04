@@ -18,6 +18,19 @@ object Shift {
     val ORGANISE = "ORGANISE"
   }
 }
-case class Shift(override val id: String, shiftType: ShiftType, date:Calendar, family: Option[Family]) extends Identifiable[String](id)
+case class Shift(override val id: String, shiftType: ShiftType, date:Calendar, var family: Option[Family]) extends Identifiable[String](id){
+
+  override def toString() : String = {
+
+    val f = family match {
+      case Some(fam) => fam.id
+      case None => "No family"
+    }
+
+    return "[Shift: " + id +
+      ", Family : " + f +
+      ", date: " + date.getTime.toString +"]"
+  }
+}
 
 case class ShiftType(override val id: String, shiftType: String, duration: Double) extends Identifiable[String](id)

@@ -42,7 +42,7 @@ class EssentialDistributionTest extends FunSuite {
       names.map(f => Family(f))
     }
 
-    val out: List[(Shift, Option[Family])] = ShiftManager.autoFill(mockWeek(0)
+    val out: List[(Shift, Option[Family])] = ShiftManager.greedyAutoFill(mockWeek(0)
       , mockFamilies()
       , Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1))
     )

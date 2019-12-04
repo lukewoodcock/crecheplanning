@@ -1,6 +1,7 @@
 package utils
 
 import java.text.SimpleDateFormat
+import java.time._
 import java.util.Calendar
 import java.util.Date
 
@@ -34,4 +35,20 @@ object DateUtils {
     cal
   }
 
+  def isWeekend(day: LocalDate) =
+    day.getDayOfWeek == DayOfWeek.SATURDAY ||
+      day.getDayOfWeek == DayOfWeek.SUNDAY
+
+  def datesInYear(year: Year) = (1 to year.length()).map(year.atDay)
+
+  def getMonth(month:Month) = datesInYear(Year.now())
+    .filter(d => d.getMonth == month)
+    .filter(d => !isWeekend(d))
+    .map(d => getCalendarDay(d))
+
+  def getCalendarDay(localDate:LocalDate) = {
+    val out = Calendar.getInstance()
+    out.setTime(Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()))
+    out
+  }
 }
