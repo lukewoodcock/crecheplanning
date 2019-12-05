@@ -30,13 +30,13 @@ object ShiftManager {
     * @param shiftsToResolve - tuple where _1 is the week of the year and _2 is the shifts in the week
     * @return
     */
-  def resolve(_families:List[Family], shiftsToResolve:List[(Int, List[Shift])]) = {
+  def resolve(_families:List[Family], shiftsToResolve:List[(Int, List[Shift])], limits:Map[String, Int]) = {
     var families = _families
     var results:(List[Shift], List[(Shift, Option[Family])]) = (List[Shift](), List[(Shift, Option[Family])]())
     for(toto <- shiftsToResolve) {
       val it = ShiftManager.autoFillWeek(toto._2
         , families
-        , Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1))
+        , limits
         //                  , Option("\n\n================ week ".concat(toto._1.toString).concat("================ "))
       )
       results = (results._1 ::: it._1, results._2 ::: it._2)
