@@ -91,7 +91,7 @@ class CodeTests extends FunSuite {
       .filter(i => i._1 == w.head._1)
   }
 
-  ignore("1 family, 1 day") {
+  test("1 family, 1 day") {
     var fMoyens = mockFamilies(List("EMMA"))
     val mShiftsToResolve = getShiftsInMonth(Month.NOVEMBER, moyenDay).toList.sortBy(_._1).take(1)
     val orgShiftsToResolve = getShiftsInMonth(Month.NOVEMBER, organiseDay).toList.sortBy(_._1).take(1)
@@ -100,10 +100,11 @@ class CodeTests extends FunSuite {
 //    println("mShiftsToResolve = ", mShiftsToResolve.map(s => s._2.map(i => i.toString())))
     println("mShiftsToResolve = ", mShiftsToResolve)
 
-    val moyenResult = ShiftManager.resolve(fMoyens, mShiftsToResolve)
+    val limits = Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1))
+    val moyenResult = ShiftManager.resolve(fMoyens, mShiftsToResolve, limits)
 //    println("moyenResult: " + moyenResult)
 
-    val orgResult = ShiftManager.resolve(moyenResult, orgShiftsToResolve)
+    val orgResult = ShiftManager.resolve(moyenResult, orgShiftsToResolve, limits)
 //    println("orgResult: " + orgResult)
 
 
@@ -140,7 +141,8 @@ class CodeTests extends FunSuite {
     val shiftsToResolve = getShiftsForAWeek(Month.NOVEMBER, mockDay).toList
     println("shiftsToResolve = ", shiftsToResolve)
 
-    val result = ShiftManager.resolve(families, shiftsToResolve)
+    val limits = Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1))
+    val result = ShiftManager.resolve(families, shiftsToResolve, limits)
     println("RESULTS:")
     result.foreach(f => {
       println("\nallResult: ".concat(f.id.concat(" family total: ").concat(f.shifts.size.toString)))
@@ -148,6 +150,13 @@ class CodeTests extends FunSuite {
         println(s.shiftType.id.concat(" : ").concat(s.date.getTime.toString))
       })
     })
+
+    assert(families
+        .filter(f => f.shifts.size != 3)
+        .filter(f => f.shifts.filter(s => s.shiftType.shiftType == Shift.TYPES.GUARD) != 2)
+        .filter(f => f.shifts.filter(s => s.shiftType.shiftType == Shift.TYPES.ORGANISE) != 1)
+        .isEmpty
+    )
   }
 
   test("november 2019") {
@@ -157,9 +166,9 @@ class CodeTests extends FunSuite {
     var fGrands = mockFamilies(List("LOUISE","ROMY","TIAGO","RUBEN","RAPHAËL","SUZANNE"))
     val gShiftsToResolve = getShiftsInMonth(Month.NOVEMBER, grandDay).toList.sortBy(_._1)
 
-
-    val moyenResult = ShiftManager.resolve(fMoyens, mShiftsToResolve)
-    val grandResult = ShiftManager.resolve(fGrands, gShiftsToResolve)
+    val limits = Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1))
+    val moyenResult = ShiftManager.resolve(fMoyens, mShiftsToResolve, limits)
+    val grandResult = ShiftManager.resolve(fGrands, gShiftsToResolve, limits)
 
     var guardAllResult = moyenResult ::: grandResult
 
@@ -174,7 +183,7 @@ class CodeTests extends FunSuite {
 
 
     val orgShiftsToResolve = getShiftsInMonth(Month.NOVEMBER, organiseDay).toList.sortBy(_._1)
-    val orgResult = ShiftManager.resolve(guardAllResult, orgShiftsToResolve)
+    val orgResult = ShiftManager.resolve(guardAllResult, orgShiftsToResolve, limits)
 
 //    orgResult.foreach(f => {
 //      println("\norgResult: ".concat(f.id.concat(" family total: ").concat(f.shifts.size.toString)))
@@ -200,7 +209,9 @@ class CodeTests extends FunSuite {
 
     allResult.foreach(f => {
       println("\nallResult: ".concat(f.id.concat(" family total: ").concat(f.shifts.size.toString)))
-      f.shifts.foreach(s => {
+      f.shifts
+          .sortBy(s => s.date)
+        .foreach(s => {
         println(s.shiftType.id.concat(" : ").concat(s.date.getTime.toString))
       })
     })
@@ -210,6 +221,7 @@ class CodeTests extends FunSuite {
       f.mappedShifts.values
     ).flatten
 
+    // check no double shifts
     var pass = true
     breakable {
       for(fam <- family_shifts) {
@@ -227,7 +239,15 @@ class CodeTests extends FunSuite {
         }
       }
     }
-
     assert(pass == true)
+
+    // check shifts don't exceed limits
+    assert(allResult
+      .filter(f => f.shifts.size != 3)
+      .filter(f => f.shifts.filter(s => s.shiftType.shiftType == Shift.TYPES.GUARD) != 2)
+      .filter(f => f.shifts.filter(s => s.shiftType.shiftType == Shift.TYPES.ORGANISE) != 1)
+      .isEmpty
+    )
+    // check organise per week <= limit (1)
   }
 }
