@@ -18,6 +18,14 @@ case class Family(override val id: String) extends Identifiable[String](id) {
     .toList
 
   val noCanDo: ListBuffer[Shift] = ListBuffer[Shift]()
+
+  // todo refactor key to be unique... weeks of year repeat each year
+  /**
+    * HashMap of shift where key is the week of the year
+    *
+    *  @tparam A    key is an Int representing the week of the year
+    *  @tparam B    value is ListBuffer of Shift
+    */
   var mappedShifts: HashMap[Int, ListBuffer[Shift]] = HashMap[Int, ListBuffer[Shift]]()
 
 

@@ -35,17 +35,37 @@ object DateUtils {
     cal
   }
 
+  /**
+    * Creates a set of Calendar.WEEK_OF_YEAR for a given month
+    * @param month
+    * @return
+    */
+  def getWeeksInMonth(month:Month) = datesInYear(Year.now())
+    .filter(d => d.getMonth == month)
+    .map(d => getCalendarDay(d).get(Calendar.WEEK_OF_YEAR))
+    .toSet
+
   def isWeekend(day: LocalDate) =
     day.getDayOfWeek == DayOfWeek.SATURDAY ||
       day.getDayOfWeek == DayOfWeek.SUNDAY
 
   def datesInYear(year: Year) = (1 to year.length()).map(year.atDay)
 
+  /**
+    * Returns an IndexedSeq of days (Calendar) in the month. Weekdays only
+    * @param month of year
+    * @return
+    */
   def getMonth(month:Month) = datesInYear(Year.now())
     .filter(d => d.getMonth == month)
     .filter(d => !isWeekend(d))
     .map(d => getCalendarDay(d))
 
+  /**
+    * Get a Calendar to a LocalDate
+    * @param localDate
+    * @return
+    */
   def getCalendarDay(localDate:LocalDate) = {
     val out = Calendar.getInstance()
     out.setTime(Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()))
