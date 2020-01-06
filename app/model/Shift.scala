@@ -24,7 +24,7 @@ case class Shift(override val id: String, shiftType: ShiftType, date:Calendar, v
 
     val f = family match {
       case Some(fam) => fam.id
-      case None => "No family"
+      case None => "Unassigned"
     }
 
     return "[Shift: " + id +

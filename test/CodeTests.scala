@@ -93,8 +93,10 @@ class CodeTests extends FunSuite {
 
   test("1 family, 1 day") {
     var fMoyens = mockFamilies(List("EMMA"))
-    val mShiftsToResolve = getShiftsInMonth(Month.NOVEMBER, moyenDay).toList.sortBy(_._1).take(1)
-    val orgShiftsToResolve = getShiftsInMonth(Month.NOVEMBER, organiseDay).toList.sortBy(_._1).take(1)
+    val firstWeekM = getShiftsInMonth(Month.NOVEMBER, moyenDay).toList.sortBy(_._1).head
+    val mShiftsToResolve = Map(firstWeekM._1 -> firstWeekM._2.filter(s => s.date == firstWeekM._2.head.date)).toList
+    val firstWeekO = getShiftsInMonth(Month.NOVEMBER, organiseDay).toList.sortBy(_._1).head
+    val orgShiftsToResolve = Map(firstWeekO._1 -> firstWeekO._2.filter(s => s.date == firstWeekM._2.head.date)).toList
 
 
 //    println("mShiftsToResolve = ", mShiftsToResolve.map(s => s._2.map(i => i.toString())))
@@ -161,10 +163,12 @@ class CodeTests extends FunSuite {
 
   test("november 2019") {
 
+    val MONTH = Month.NOVEMBER
+
     var fMoyens = mockFamilies(List("EMMA","LAUTARO","AIMÉE","JULIETTE","LOUIS","ÉLISA","MARCEAU"))
-    val mShiftsToResolve = getShiftsInMonth(Month.NOVEMBER, moyenDay).toList.sortBy(_._1)
+    val mShiftsToResolve = getShiftsInMonth(MONTH, moyenDay).toList.sortBy(_._1)
     var fGrands = mockFamilies(List("LOUISE","ROMY","TIAGO","RUBEN","RAPHAËL","SUZANNE"))
-    val gShiftsToResolve = getShiftsInMonth(Month.NOVEMBER, grandDay).toList.sortBy(_._1)
+    val gShiftsToResolve = getShiftsInMonth(MONTH, grandDay).toList.sortBy(_._1)
 
     val limits = Map((Shift.TYPES.GUARD, 2),(Shift.TYPES.ORGANISE, 1))
     val moyenResult = ShiftManager.resolve(fMoyens, mShiftsToResolve, limits)
@@ -182,7 +186,7 @@ class CodeTests extends FunSuite {
     println("Total guardAllResult = " + guardAllResult.map(s => s.shifts.size).sum.toString)
 
 
-    val orgShiftsToResolve = getShiftsInMonth(Month.NOVEMBER, organiseDay).toList.sortBy(_._1)
+    val orgShiftsToResolve = getShiftsInMonth(MONTH, organiseDay).toList.sortBy(_._1)
     val orgResult = ShiftManager.resolve(guardAllResult, orgShiftsToResolve, limits)
 
 //    orgResult.foreach(f => {
@@ -242,12 +246,15 @@ class CodeTests extends FunSuite {
     assert(pass == true)
 
     // check shifts don't exceed limits
-    assert(allResult
-      .filter(f => f.shifts.size != 3)
-      .filter(f => f.shifts.filter(s => s.shiftType.shiftType == Shift.TYPES.GUARD) != 2)
-      .filter(f => f.shifts.filter(s => s.shiftType.shiftType == Shift.TYPES.ORGANISE) != 1)
-      .isEmpty
-    )
-    // check organise per week <= limit (1)
+    val weeks = DateUtils.getWeeksInMonth(MONTH)
+    allResult.foreach(f => {
+      weeks.foreach(m => {
+        val week = f.shifts.filter(s => s.date.get(Calendar.WEEK_OF_YEAR) == m)
+        assert(week.size < 4
+          && week.filter(s => s.shiftType.shiftType == Shift.TYPES.GUARD).size < 3
+          && week.filter(s => s.shiftType.shiftType == Shift.TYPES.ORGANISE).size < 2
+        )
+      })
+    })
   }
 }
