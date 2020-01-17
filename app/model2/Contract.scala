@@ -32,8 +32,8 @@ import model.Identifiable
   * }
   */
 
-case class Limits(daily:Int, weekly:Int, monthly:Int)
+case class Limits(daily:Option[Int], weekly:Option[Int], monthly:Option[Int])
 
-case class ShiftRule(shiftTypes:List[ShiftType], limits:Limits)
+case class ShiftRule(shiftTypes:List[String], limits:Limits)
 
-case class Contracts(override val id: Int, shiftRules:List[ShiftRule]) extends Identifiable[Int](id)
+case class Contract(override val id: Int, shiftRules:List[ShiftRule]) extends Identifiable[Int](id)

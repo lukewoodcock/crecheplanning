@@ -14,6 +14,6 @@ import model.Identifiable
   * }
   */
 
-case class ShiftType(override val id: String, description: String, startTime: String, endTime: String, skillsRequirements:List[String]) extends Identifiable[String](id) {
+case class ShiftDefinition(override val id: String, description: String, startTime: String, endTime: String, skillsRequirements:List[String]) extends Identifiable[String](id) {
 
 }

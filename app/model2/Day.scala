@@ -34,7 +34,7 @@ import model.Identifiable
   * }
   */
 
-case class Cover(shift: ShiftType, cover: Int)
+case class Cover(shift: ShiftDefinition, cover: Int)
 
 case class Day(override val id: String, shifts:List[Cover]) extends Identifiable[String](id)
 

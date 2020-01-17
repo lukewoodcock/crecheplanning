@@ -1,93 +1,10 @@
 {
-	"skills": [
-		"Guard_Moyens",
-		"Gym_Moyens",
-		"Organise",
-		"Guard_Grands",
-		"Gym_Grands"
-	],
-	"shifts": [
-		{
-			"id": "OPEN",
-			"category": "ORGANISE",
-			"description": "Open crèche",
-			"startTime": "08:00:00",
-			"endTime": "09:30:00",
-			"skillsRequirements": [
-				"Organise"
-			]
-		},
-		{
-			"id": "CLOSE",
-			"category": "ORGANISE",
-			"description": "Close crèche",
-			"startTime": "17:00:00",
-			"endTime": "18:30:00",
-			"skillsRequirements": [
-				"Organise"
-			]
-		},
-		{
-			"id": "MORNING_MOYENS",
-			"category": "GUARD",
-			"description": "Morning guard moyens",
-			"startTime": "09:30:00",
-			"endTime": "13:30:00",
-			"skillsRequirements": [
-				"Guard_Moyens"
-			]
-		},
-		{
-			"id": "AFTERNOON_MOYENS",
-			"category": "GUARD",
-			"description": "Afternoon guard moyens",
-			"startTime": "13:30:00",
-			"endTime": "18:30:00",
-			"skillsRequirements": [
-				"Guard_Moyens"
-			]
-		},
-		{
-			"id": "MORNING_GRANDS",
-			"category": "GUARD",
-			"description": "Morning guard grands",
-			"startTime": "09:30:00",
-			"endTime": "13:30:00",
-			"skillsRequirements": [
-				"Guard_Grands"
-			]
-		},
-		{
-			"id": "AFTERNOON_GRANDS",
-			"category": "GUARD",
-			"description": "Afternoon guard grands",
-			"startTime": "13:30:00",
-			"endTime": "18:30:00",
-			"skillsRequirements": [
-				"Guard_Grands"
-			]
-		},
-		{
-			"id": "GYM_MOYENS",
-			"category": "GUARD",
-			"description": "Gym Moyens",
-			"startTime": "09:30:00",
-			"endTime": "11:30:00",
-			"skillsRequirements": [
-				"Gym_Moyens"
-			]
-		},
-		{
-			"id": "GYM_GRANDS",
-			"category": "GUARD",
-			"description": "Gym Grands",
-			"startTime": "09:30:00",
-			"endTime": "11:30:00",
-			"skillsRequirements": [
-				"Gym_Grands"
-			]
-		}
-	],
+
+	"monday": ["OPEN","CLOSE","MORNING_MOYENS","AFTERNOON_MOYENS","MORNING_GRANDS","AFTERNOON_GRANDS", "GYM_MOYENS","GYM_GRANDS"],
+	"monday": ["OPEN","CLOSE","MORNING_MOYENS","AFTERNOON_MOYENS","MORNING_GRANDS","AFTERNOON_GRANDS", "GYM_MOYENS","GYM_GRANDS"],
+	"monday": ["OPEN","CLOSE","MORNING_MOYENS","AFTERNOON_MOYENS","MORNING_GRANDS","AFTERNOON_GRANDS", "GYM_MOYENS","GYM_GRANDS"],
+	"monday": ["OPEN","CLOSE","MORNING_MOYENS","AFTERNOON_MOYENS","MORNING_GRANDS","AFTERNOON_GRANDS", "GYM_MOYENS","GYM_GRANDS"],
+	"monday": ["OPEN","CLOSE","MORNING_MOYENS","AFTERNOON_MOYENS","MORNING_GRANDS","AFTERNOON_GRANDS", "GYM_MOYENS","GYM_GRANDS"],
 	"contracts": [
 		{
 			"id": 0,
