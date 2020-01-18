@@ -1,13 +1,13 @@
 package model2
 
-case class SimpleModel(skills: String) {
+import model.Identifiable
 
-}
+case class Model(skills: List[String], shifts: List[ShiftDefinition], contracts: List[Contract], families: List[Family])
 
-case class Location(lat: Double, long: List[String])
-case class Resident(name: String, age: Int, role: Option[String])
-case class Place(name: String, location: Location, residents: Seq[Resident])
-
-case class Model(skills: List[String], shifts: List[ShiftDefinition], contracts: List[Contract], families: List[Family]) {
-
-}
+//Scheduling
+case class Cover(shiftType: String, cover: Int)
+case class Day(override val id: Int, shifts:List[Cover]) extends Identifiable[Int](id)
+case class WeekDefinition(override val id: String, days:List[Day]) extends Identifiable[String](id)
+case class Absence(date: String, familyId: String, shiftId: Option[String])
+case class CoverRequirements(year: Int, month: Int, weekDefinitions: List[WeekDefinition])
+case class ScheduleRequirements(coverRequirements: List[CoverRequirements], shiftAbsences: Option[List[Absence]], dateAbsences: Option[List[Absence]])

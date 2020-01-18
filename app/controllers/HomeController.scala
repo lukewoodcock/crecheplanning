@@ -52,7 +52,7 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
   )(Contract.apply _)
 
   implicit val familyReads: Reads[Family] = (
-    (JsPath \ "id").read[Int] and
+    (JsPath \ "id").read[String] and
       (JsPath \ "contractId").read[Int] and
       (JsPath \ "name").read[String] and
       (JsPath \ "skills").read[List[String]]
@@ -65,8 +65,53 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
       (JsPath \ "families").read[List[Family]]
     )(Model.apply _)
 
-  def indexPost = Action(parse.json) { request =>
+  def modelPost = Action(parse.json) { request =>
     val requestValidation = request.body.validate[Model]
+    requestValidation.fold(
+      errors => {
+        BadRequest(Json.obj("message" -> JsError.toJson(errors)))
+      },
+      model => {
+        Ok(views.html.index("Hello world".concat(request.body.toString())))
+      }
+    )
+  }
+
+  implicit val coverDefinitionReads: Reads[Cover] = (
+    (JsPath \ "shiftType").read[String] and
+      (JsPath \ "cover").read[Int]
+    )(Cover.apply _)
+
+  implicit val dayOfweekDefinitionReads: Reads[Day] = (
+    (JsPath \ "day").read[Int] and
+      (JsPath \ "shifts").read[List[Cover]]
+    )(Day.apply _)
+
+  implicit val weekDefinitionReads: Reads[WeekDefinition] = (
+    (JsPath \ "id").read[String] and
+      (JsPath \ "days").read[List[Day]]
+    )(WeekDefinition.apply _)
+
+  implicit val coverRequirementsReads: Reads[CoverRequirements] = (
+    (JsPath \ "year").read[Int] and
+      (JsPath \ "month").read[Int] and
+      (JsPath \ "weekDefinitions").read[List[WeekDefinition]]
+  )(CoverRequirements.apply _)
+
+  implicit val absenceReads: Reads[Absence] = (
+    (JsPath \ "date").read[String] and
+      (JsPath \ "familyId").read[String] and
+      (JsPath \ "shiftId").readNullable[String]
+    )(Absence.apply _)
+
+  implicit val scheduleRequirementsReads: Reads[ScheduleRequirements] = (
+    (JsPath \ "coverRequirements").read[List[CoverRequirements]] and
+      (JsPath \ "shiftAbsences").readNullable[List[Absence]] and
+      (JsPath \ "dateAbsences").readNullable[List[Absence]]
+    )(ScheduleRequirements.apply _)
+
+  def coverPost = Action(parse.json) { request =>
+    val requestValidation = request.body.validate[ScheduleRequirements]
     requestValidation.fold(
       errors => {
         BadRequest(Json.obj("message" -> JsError.toJson(errors)))

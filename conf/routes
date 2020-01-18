@@ -7,7 +7,8 @@
 GET     /                           controllers.HomeController.index
 
 # Temp endpoint for dev
-POST    /define                     controllers.HomeController.indexPost
+POST    /define                     controllers.HomeController.modelPost
+POST    /cover                     controllers.HomeController.coverPost
 # An example controller showing how to use dependency injection
 GET     /count                      controllers.CountController.count
 # An example controller showing how to write asynchronous code

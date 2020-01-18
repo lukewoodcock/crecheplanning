@@ -16,4 +16,4 @@ import model.Identifiable
   * }
   */
 
-case class Family(override val id: Int, contractId: Int, name: String, skills:List[String]) extends Identifiable[Int](id)
+case class Family(override val id: String, contractId: Int, name: String, skills:List[String]) extends Identifiable[String](id)
