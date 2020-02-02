@@ -1,9 +1,11 @@
 package controllers
 
 import java.time.Month
+import java.util.Calendar
 
 import javax.inject._
 import model2._
+import model2.shifts.{ScheduledShift, ShiftDefinition}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsError, JsPath, Json, Reads}
 import play.api.mvc._
@@ -29,6 +31,7 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
 
   implicit val shiftsReads: Reads[ShiftDefinition] = (
     (JsPath \ "id").read[String] and
+      (JsPath \ "category").read[String] and
       (JsPath \ "description").read[String] and
       (JsPath \ "startTime").read[String] and
       (JsPath \ "endTime").read[String] and
@@ -42,12 +45,13 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
     )(Limits.apply _)
 
   implicit val shiftRuleReads: Reads[ShiftRule] = (
-    (JsPath \ "shiftTypes").read[List[String]] and
+    (JsPath \ "shiftDefinitionIds").read[List[String]] and
       (JsPath \ "limits").read[Limits]
     )(ShiftRule.apply _)
 
   implicit val contractsReads: Reads[Contract] = (
     (JsPath \ "id").read[Int] and
+      (JsPath \ "globalLimits").read[Limits] and
       (JsPath \ "shiftRules").read[List[ShiftRule]]
   )(Contract.apply _)
 
@@ -78,7 +82,7 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
   }
 
   implicit val coverDefinitionReads: Reads[Cover] = (
-    (JsPath \ "shiftType").read[String] and
+    (JsPath \ "shiftDefinitionId").read[String] and
       (JsPath \ "cover").read[Int]
     )(Cover.apply _)
 
@@ -101,7 +105,7 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
   implicit val absenceReads: Reads[Absence] = (
     (JsPath \ "date").read[String] and
       (JsPath \ "familyId").read[String] and
-      (JsPath \ "shiftId").readNullable[String]
+      (JsPath \ "shiftDefinitionId").readNullable[String]
     )(Absence.apply _)
 
   implicit val scheduleRequirementsReads: Reads[ScheduleRequirements] = (

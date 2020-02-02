@@ -7,7 +7,7 @@ import java.util.Date
 
 object DateUtils {
 
-  val DATE_FORMAT = "EEE, MMM dd, yyyy"
+  val DATE_FORMAT = "EEE, MMM dd, yyyy h:mm a"
 
   def getDateAsString(d: Date): String = {
     val dateFormat = new SimpleDateFormat(DATE_FORMAT)

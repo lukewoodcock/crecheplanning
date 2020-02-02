@@ -1,13 +1,7 @@
-import java.util.Calendar
-
-import model.{Family, Shift, ShiftType}
-import org.scalatest.FunSuite
-import services.ShiftManager
-
-import scala.util.Random
-import java.util._
+import java.text.SimpleDateFormat
 
 import org.joda.time.DateTime
+import org.scalatest.FunSuite
 import utils.DateUtils
 
 
@@ -43,5 +37,28 @@ class CalendarTests extends FunSuite {
     // print the new time
     println("After setting Time:  " + cal.getTime)
     println("as string:  " + DateUtils.getDateAsString(cal.getTime))
+  }
+
+  test("hour string manipulation") {
+    import java.util.Calendar
+    val date = Calendar.getInstance().getTime()
+    val dateFormat = new SimpleDateFormat("yyyy-mm-dd")
+    val strDate = dateFormat.format(date)
+
+    val finalDateStr = strDate.concat(" ").concat("08:00:00")
+    val finalDate = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss").parse(finalDateStr)
+    println(finalDateStr)
+    println(finalDate.toString)
+
+    println(new SimpleDateFormat("yyyy-mm-dd hh:mm:ss")
+      .parse(new SimpleDateFormat("yyyy-mm-dd")
+        .format(date)
+        .concat(" ")
+        .concat("09:00:00")
+      ))
+
+    //TODO debug why there are random dates here
+
+    println(date)
   }
 }
