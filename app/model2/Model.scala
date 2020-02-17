@@ -11,4 +11,4 @@ case class Day(override val id: Int, shifts:List[Cover]) extends Identifiable[In
 case class WeekDefinition(override val id: String, days:List[Day]) extends Identifiable[String](id)
 case class Absence(date: String, familyId: String, shiftId: Option[String])
 case class CoverRequirements(year: Int, month: Int, weekDefinitions: List[WeekDefinition])
-case class ScheduleRequirements(coverRequirements: List[CoverRequirements], shiftAbsences: Option[List[Absence]], dateAbsences: Option[List[Absence]])
+case class ScheduleRequirements(shifts: List[ShiftDefinition], coverRequirements: List[CoverRequirements], shiftAbsences: Option[List[Absence]], dateAbsences: Option[List[Absence]])

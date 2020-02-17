@@ -9,7 +9,8 @@ import model2.shifts.{ScheduledShift, ShiftDefinition}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsError, JsPath, Json, Reads}
 import play.api.mvc._
-import utils.DateUtils
+import services.ShiftManager2
+import utils.{CoverUtils, DateUtils, ShiftUtils}
 
 /**
  * This controller creates an `Action` to handle HTTP requests to the
@@ -69,17 +70,9 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
       (JsPath \ "families").read[List[Family]]
     )(Model.apply _)
 
-  def modelPost = Action(parse.json) { request =>
-    val requestValidation = request.body.validate[Model]
-    requestValidation.fold(
-      errors => {
-        BadRequest(Json.obj("message" -> JsError.toJson(errors)))
-      },
-      model => {
-        Ok(views.html.index("Hello world".concat(request.body.toString())))
-      }
-    )
-  }
+  ////////////
+
+
 
   implicit val coverDefinitionReads: Reads[Cover] = (
     (JsPath \ "shiftDefinitionId").read[String] and
@@ -100,7 +93,7 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
     (JsPath \ "year").read[Int] and
       (JsPath \ "month").read[Int] and
       (JsPath \ "weekDefinitions").read[List[WeekDefinition]]
-  )(CoverRequirements.apply _)
+    )(CoverRequirements.apply _)
 
   implicit val absenceReads: Reads[Absence] = (
     (JsPath \ "date").read[String] and
@@ -109,10 +102,83 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
     )(Absence.apply _)
 
   implicit val scheduleRequirementsReads: Reads[ScheduleRequirements] = (
-    (JsPath \ "coverRequirements").read[List[CoverRequirements]] and
+    (JsPath \ "shifts").read[List[ShiftDefinition]] and
+      (JsPath \ "coverRequirements").read[List[CoverRequirements]] and
       (JsPath \ "shiftAbsences").readNullable[List[Absence]] and
       (JsPath \ "dateAbsences").readNullable[List[Absence]]
     )(ScheduleRequirements.apply _)
+
+  def modelPost = Action(parse.json) { request =>
+    val modelValidation = request.body.validate[Model]
+    modelValidation.fold(
+      errors => {
+        BadRequest(Json.obj("message" -> JsError.toJson(errors)))
+      },
+      model => {
+        //check family contract ids are defined in contracts
+        val contracts = model.contracts.groupBy(_.id)
+        val cond = model.families.map(f => contracts.get(f.contractId))
+        if(cond.contains(None)) {
+          BadRequest("Families contains Family with undefined contract")
+        } else {
+
+          val requestValidation = request.body.validate[ScheduleRequirements]
+          requestValidation.fold(
+            errors => {
+              BadRequest(Json.obj("message" -> JsError.toJson(errors)))
+            },
+            crModel => {
+
+              if(crModel.coverRequirements.size > 1) {
+                BadRequest("API currently only handles 1 month at a time")
+              } else if (crModel.coverRequirements.size < 1) {
+                BadRequest("Missing cover requirements")
+              } else {
+
+                crModel.coverRequirements.foreach(cr => {
+
+
+                  val out = CoverUtils.getMonth(cr, model.shifts)
+                  //          out.foreach(d => {
+                  //            println(d.id)
+                  //          })
+
+                  val grouped = ShiftUtils.groupShiftsByWeek(out)
+                  grouped.foreach(d => {
+                    println(d._1)
+                    d._2.foreach(s => {
+                      println(s.id)
+                    })
+                  })
+                })
+
+//                val shifts = crModel.coverRequirements.map(cr => {
+//                  val out = CoverUtils.getMonth(cr, model.shifts)
+//                  ShiftUtils.groupShiftsByWeek(out)
+//                })
+
+                val shifts = CoverUtils.getMonth(crModel.coverRequirements.head, model.shifts)
+
+                val result = ShiftManager2.resolve(model.families, ShiftUtils.groupShiftsByWeek(shifts), model.contracts)
+
+                result.groupBy(_._1.date.get(Calendar.WEEK_OF_YEAR)).foreach(r => {
+                  println("\n\nWeek : " + r._1)
+                  r._2
+                      .filter(s => s._2.get.contractId == 0)
+                    .foreach(s => {
+                    println(s._1)
+                  })
+                })
+
+                Ok(views.html.index("Hello world".concat(request.body.toString())))
+              }
+            }
+          )
+        }
+      }
+    )
+
+  }
 
   def coverPost = Action(parse.json) { request =>
     val requestValidation = request.body.validate[ScheduleRequirements]
@@ -121,6 +187,24 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
         BadRequest(Json.obj("message" -> JsError.toJson(errors)))
       },
       model => {
+        model.coverRequirements.foreach(cr => {
+
+
+
+
+          val out = CoverUtils.getMonth(cr, model.shifts)
+//          out.foreach(d => {
+//            println(d.id)
+//          })
+
+          val grouped = ShiftUtils.groupShiftsByWeek(out)
+          grouped.foreach(d => {
+            println(d._1)
+            d._2.foreach(s => {
+              println(s.id)
+            })
+          })
+        })
         Ok(views.html.index("Hello world".concat(request.body.toString())))
       }
     )

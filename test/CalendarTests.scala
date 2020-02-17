@@ -34,6 +34,13 @@ class CalendarTests extends FunSuite {
     println("date is before anotherDate = " + (date.compareTo(anotherDate) < 0))
 
 
+    println("=====")
+    cal.setTime(new DateTime(1995, 10, 1, 7, 15).toDate())
+    println(cal.get(Calendar.DAY_OF_WEEK))
+    println(cal.get(Calendar.WEEK_OF_MONTH))
+    println(cal.getTime)
+    println("=====")
+
     // print the new time
     println("After setting Time:  " + cal.getTime)
     println("as string:  " + DateUtils.getDateAsString(cal.getTime))

@@ -9,6 +9,16 @@ import utils.DateUtils
 import scala.collection.mutable.{HashMap, ListBuffer}
 
 
+//trait Contracted {
+////  def assignContracts(families:Array[Family], contracts:Array[Contract]) = families.foreach(f => contracts)
+//  var contract:Int
+//}
+
+object Family {
+  def hasSkill(family: Family, skill:String) = family.skills.contains(skill)
+  def hasSkills(family: Family, skills:List[String]) = skills.forall(s => family.skills.contains(s))
+}
+
 /**
   * {
   * "id": 0,
@@ -23,6 +33,9 @@ import scala.collection.mutable.{HashMap, ListBuffer}
   */
 
 case class Family(override val id: String, contractId: Int, name: String, skills:List[String]) extends Identifiable[String](id) {
+
+  var contract: Option[Contract] = None
+
   def shifts = mappedShifts
     .values
     .flatten
@@ -35,13 +48,13 @@ case class Family(override val id: String, contractId: Int, name: String, skills
     *  @tparam A    key is an Int representing the week of the year
     *  @tparam B    value is ListBuffer of Shift
     */
-  private val mappedShifts: HashMap[Int, ListBuffer[ScheduledShift]] = HashMap[Int, ListBuffer[ScheduledShift]]()
+  private val mappedShifts: HashMap[String, ListBuffer[ScheduledShift]] = HashMap[String, ListBuffer[ScheduledShift]]()
 
   def addShift(shift:ScheduledShift):Family = {
 
-    mappedShifts.get(shift.date.get(Calendar.WEEK_OF_YEAR)) match {
+    mappedShifts.get(ScheduledShift.getWeek(shift)) match {
       case Some(r) => r += shift
-      case None => mappedShifts.put(shift.date.get(Calendar.WEEK_OF_YEAR), ListBuffer(shift))
+      case None => mappedShifts.put(ScheduledShift.getWeek(shift), ListBuffer(shift))
     }
     shift.family = Option(this)
 
@@ -54,7 +67,7 @@ case class Family(override val id: String, contractId: Int, name: String, skills
   }
 
   def removeShift(shift:ScheduledShift) = {
-    mappedShifts.get(shift.date.get(Calendar.WEEK_OF_YEAR)) match {
+    mappedShifts.get(ScheduledShift.getWeek(shift)) match {
       case Some(r) => {
         println("mappedShifts Before", r)
         r -= (shift)
@@ -65,49 +78,23 @@ case class Family(override val id: String, contractId: Int, name: String, skills
     }
   }
 
-  /**
-    * TODO rename to getShiftByCategory, and remember this processes only one week
-    * @param week
-    * @param shift
-    * @return
-    */
-  def getShiftsByType(week:Int, shift:ScheduledShift):List[ScheduledShift] = getShiftsByWeek(week, shift)
-
-//  def getShiftsByWeek(week:Int):List[ScheduledShift] = {
-//    mappedShifts.get(week) match {
-//      case Some(r) => r.toList
-//      case None => List[ScheduledShift]()
-//    }
-//  }
-
-  def getShiftsByWeek(week:Int, shift:ScheduledShift):List[ScheduledShift] = {
+  def getShiftsByCategoryForWeek(week:String, shift:ScheduledShift):List[ScheduledShift] = {
     mappedShifts.get(week) match {
-      case Some(r) => r.toList.filter(s => s.definition.category == shift.definition.category)
+      case Some(r) => r.toList.filter(s => s.definition.category == shift.definition.category) //TODO use shift id with contract
       case None => List[ScheduledShift]()
     }
   }
 
-  def getShiftsByWeek(week:Int, shiftCategory:String):List[ScheduledShift] = {
+  def getShiftsByCategoryForWeek(week:String, shiftCategory:String):List[ScheduledShift] = {
     mappedShifts.get(week) match {
       case Some(r) => r.toList.filter(s => s.definition.category == shiftCategory)
       case None => List[ScheduledShift]()
     }
   }
 
-  def numShiftsOnDay(date:Calendar):Int = {
-    val list = this.shifts.filter(s => DateUtils.sameDay(s.date, date))
-    list match {
-      case Nil => 0
-      case head :: Nil => 1
-      case head :: tail => list.size
-    }
-  }
+  def numShiftsOnDay(date:Calendar):Int = this.shifts.filter(s => DateUtils.sameDay(s.date, date)).size
 
-  def hasAShiftOnDay(date:Calendar):Boolean =
-    this.shifts.find(s => DateUtils.sameDay(s.date, date)) match {
-      case Some(i) => true
-      case None => false
-    }
+  def hasAShiftOnDay(date:Calendar):Boolean = numShiftsOnDay(date) > 0
 
   override def toString() : String = {
     val s = shifts.map(i => i.id.concat(" " + i.date.getTime.toString))
