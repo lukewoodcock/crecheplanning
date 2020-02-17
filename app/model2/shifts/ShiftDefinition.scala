@@ -42,8 +42,12 @@ case class ScheduledShift(override val id: String, definition: ShiftDefinition, 
 
   def duration: Long = Math.abs(end.getTime() - start.getTime())
 
-  override def toString() : String =
-    "Shift: " + definition.id + ", Family: " + family.get.id + " - " + family.get.contractId + ", Date : " + this.start.toString
+  override def toString() : String = {
+    family match {
+      case Some(value) => "Shift: " + definition.id + ", Family: " + value.id + " - " + value.contractId + ", Date : " + this.start.toString
+      case None => "Shift: " + definition.id + ", Family: None, Date : " + this.start.toString
+    }
+  }
 
 //  override def toString() : String = {
 //    family match {
