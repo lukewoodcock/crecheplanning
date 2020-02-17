@@ -11,7 +11,7 @@ object ShiftUtils {
   def hasShiftOnDay(shifts: List[ScheduledShift], date:Calendar) = numShiftsOnDay(shifts, date) > 0
 
   def getShiftsByCategoryForWeek(shifts: List[ScheduledShift], category: String, week:Int):List[ScheduledShift] = {
-    shifts.filter(s => s.date.getWeekYear == week)
+    shifts.filter(s => s.date.get(Calendar.WEEK_OF_YEAR) == week)
         .filter(s => s.definition.category == category)//TODO use shift id with contract
 //    mappedShifts.get(week) match {
 //      case Some(r) => r.toList.filter(s => s.definition.category == shift.definition.category) //TODO use shift id with contract

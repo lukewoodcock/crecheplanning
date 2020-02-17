@@ -54,7 +54,8 @@ object ShiftManager2 {
         val autoFilledShifts = greedyAutoFill(shifts, families, contracts)
         val unassignedShifts = autoFilledShifts.filter(shift => shift._2.isEmpty)
         val assigned = autoFilledShifts.filterNot(unassignedShifts.contains(_))
-        ShiftManager2.resolveUnassigned(families, unassignedShifts.map(_._1), assigned, List[ScheduledShift](), contracts)
+        val out = ShiftManager2.resolveUnassigned(families, unassignedShifts.map(_._1), assigned, List[ScheduledShift](), contracts)
+//        out //TODO correct output of ShiftManager2.resolveUnassigned and return it
         assigned //TODO remove
       }
       case None => {
@@ -62,7 +63,8 @@ object ShiftManager2 {
         val unassignedShifts = autoFilledShifts.filter(shift => shift._2.isEmpty)
         val toto = autoFilledShifts.map(s => s._1.definition.id)
         val assigned = autoFilledShifts.filterNot(unassignedShifts.contains(_))
-        ShiftManager2.resolveUnassigned(families, unassignedShifts.map(_._1), assigned, List[ScheduledShift](), contracts)
+        val out = ShiftManager2.resolveUnassigned(families, unassignedShifts.map(_._1), assigned, List[ScheduledShift](), contracts)
+//        out //TODO correct output of ShiftManager2.resolveUnassigned and return it
         assigned //TODO remove
       }
     }
@@ -98,12 +100,12 @@ object ShiftManager2 {
                 val contract = contracts.find(c => c.id == f.contractId).get
 
                 //check globals
-                !exceedLimit(f.shifts, contract.globalLimits, shifts.head.date, s.definition.category)
+                !exceedLimit(f.shifts, contract.globalLimits, s.date, s.definition.category)
               })
               .filter(f => {
                 val contract = contracts.find(c => c.id == f.contractId).get
                 contract.shiftRules.find(sr => sr.shiftDefinitionIds.contains(s.definition.id)) match {
-                  case Some(rule) => !exceedLimit(f.shifts, rule.limits, shifts.head.date, s.definition.category)
+                  case Some(rule) => !exceedLimit(f.shifts, rule.limits, s.date, s.definition.category)
                   case _ => false
                 }
               })
@@ -134,12 +136,12 @@ object ShiftManager2 {
             val contract = contracts.find(c => c.id == f.contractId).get
 
             //check globals
-            !exceedLimit(f.shifts, contract.globalLimits, shifts.head.date, s.definition.category)
+            !exceedLimit(f.shifts, contract.globalLimits, s.date, s.definition.category)
           })
           .filter(f => {
             val contract = contracts.find(c => c.id == f.contractId).get
             contract.shiftRules.find(sr => sr.shiftDefinitionIds.contains(s.definition.id)) match {
-              case Some(rule) => !exceedLimit(f.shifts, rule.limits, shifts.head.date, s.definition.category)
+              case Some(rule) => !exceedLimit(f.shifts, rule.limits, s.date, s.definition.category)
               case _ => false
             }
           })
