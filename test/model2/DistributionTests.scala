@@ -156,9 +156,9 @@ class DistributionTests extends FunSuite {
         .groupBy(_._2)
 
     assert(result.keys.flatten.toList
-      .filter(f => f.shifts != 3)
-        .filter(f => f.shifts.filter(s => s.definition.category.equalsIgnoreCase("guard")) != 2)
-        .filter(f => f.shifts.filter(s => s.definition.category.equalsIgnoreCase("ORGANISE")) != 2)
+      .filter(f => f.shifts.size != 3)
+        .filter(f => f.shifts.filter(s => s.definition.category.equalsIgnoreCase("guard")).size != 2)
+        .filter(f => f.shifts.filter(s => s.definition.category.equalsIgnoreCase("ORGANISE")).size != 2)
         .isEmpty
     )
   }

@@ -15,14 +15,16 @@ object ShiftManager2 {
 
     var families = _families
 
-    var results:List[(ScheduledShift, Option[Family])] = List[(ScheduledShift, Option[Family])]()
+//    var results:List[(ScheduledShift, Option[Family])] = List[(ScheduledShift, Option[Family])]()
+    var results:(List[ScheduledShift], List[(ScheduledShift, Option[Family])]) = (List[ScheduledShift](), List[(ScheduledShift, Option[Family])]())
     for(week <- weeksToResolve) {
 
       val it = ShiftManager2.autoFillWeek(week._2
       , families
       , contracts
       )
-      results = results ::: it
+//      results = results ::: it
+      results = (results._1 ::: it._1, results._2 ::: it._2)
       val af = families.sortBy(_.shifts.size)
       families = af
       /**
@@ -45,18 +47,19 @@ object ShiftManager2 {
 //      .groupBy(_._2.get.id)
 //
 //    all
-    results
+    results._2
   }
 
-  def autoFillWeek(shifts:List[ScheduledShift], families:List[Family], contracts:List[Contract], debug:Option[String] = None) : List[(ScheduledShift, Option[Family])] = {
+//  def autoFillWeek(shifts:List[ScheduledShift], families:List[Family], contracts:List[Contract], debug:Option[String] = None) : List[(ScheduledShift, Option[Family])] = {
+  def autoFillWeek(shifts:List[ScheduledShift], families:List[Family], contracts:List[Contract], debug:Option[String] = None):(List[ScheduledShift], List[(ScheduledShift, Option[Family])])  = {
     debug match {
       case Some(debugString) => {
         val autoFilledShifts = greedyAutoFill(shifts, families, contracts)
         val unassignedShifts = autoFilledShifts.filter(shift => shift._2.isEmpty)
         val assigned = autoFilledShifts.filterNot(unassignedShifts.contains(_))
         val out = ShiftManager2.resolveUnassigned(families, unassignedShifts.map(_._1), assigned, List[ScheduledShift](), contracts)
-//        out //TODO correct output of ShiftManager2.resolveUnassigned and return it
-        assigned //TODO remove
+        out //TODO correct output of ShiftManager2.resolveUnassigned and return it
+//        assigned //TODO remove
       }
       case None => {
         val autoFilledShifts = greedyAutoFill(shifts, families, contracts)
@@ -64,8 +67,8 @@ object ShiftManager2 {
         val toto = autoFilledShifts.map(s => s._1.definition.id)
         val assigned = autoFilledShifts.filterNot(unassignedShifts.contains(_))
         val out = ShiftManager2.resolveUnassigned(families, unassignedShifts.map(_._1), assigned, List[ScheduledShift](), contracts)
-//        out //TODO correct output of ShiftManager2.resolveUnassigned and return it
-        assigned //TODO remove
+        out //TODO correct output of ShiftManager2.resolveUnassigned and return it
+//        assigned //TODO remove
       }
     }
   }
@@ -178,20 +181,45 @@ object ShiftManager2 {
     false
   }
 
-//  def resolveUnassigned(families:List[Family], unassigned:List[ScheduledShift], assigned:List[(ScheduledShift, Option[Family])], unresolved:List[ScheduledShift], limits:Map[String, Double]):(List[ScheduledShift], List[(ScheduledShift, Option[Family])]) = {
+  def exceedLimit(shifts: List[ScheduledShift], limits: Limits, date: Calendar, category: String, op: (Int, Int) => Boolean):Boolean = {
+    limits.daily match {
+      case Some(value) => {
+        if(op(ShiftUtils.numShiftsOnDay(shifts, date), value)) return true
+      }
+      case _ =>
+    }
+
+    limits.weekly match {
+      case Some(value) => {
+        val week =
+          if(op(ShiftUtils.getShiftsByCategoryForWeek(shifts, category, date.get(Calendar.WEEK_OF_YEAR)).size, value)) return true
+      }
+      case _ =>
+    }
+
+    false
+  }
+
   def resolveUnassigned(families:List[Family], unassigned:List[ScheduledShift], assigned:List[(ScheduledShift, Option[Family])], unresolved:List[ScheduledShift], contracts:List[Contract]):(List[ScheduledShift], List[(ScheduledShift, Option[Family])]) = {
     unassigned match {
       case head :: tail => {
 
+        val lessOrEqual = (a: Int, b: Int) => a <= b
+        val two = families.filter(f => f.shifts.size < 3)
+
         // remove scheduled shifts whose family already meets quota
         // filter assigned shifts by id (shift type) and whose family has not exceed duration for that shift as per their contract
-        val filteredAndSortedAssigned = assigned.filter(s => s._1.definition.id == head.definition.id)
+        val filteredAndSortedAssigned_toto = assigned
+//          .filter(s => s._1.definition.id == head.definition.id)
+          .filter(s => s._1.definition.category.equalsIgnoreCase(head.definition.category))
           .filter(s => {
             val family = s._2.get
             val familyContract = contracts.find(contract => contract.id == family.contractId).get
             val shiftRule = familyContract.shiftRules.find(rules => rules.shiftDefinitionIds.contains(s._1.definition.id)).headOption.get
-            !exceedLimit(family.shifts, familyContract.globalLimits, s._1.date, s._1.definition.category) && !exceedLimit(family.shifts, shiftRule.limits, s._1.date, s._1.definition.category)
+            exceedLimit(family.shifts, familyContract.globalLimits, s._1.date, s._1.definition.category, lessOrEqual) && exceedLimit(family.shifts, shiftRule.limits, s._1.date, s._1.definition.category, lessOrEqual)
           })
+
+        val filteredAndSortedAssigned = filteredAndSortedAssigned_toto
           .sortBy(_._2.get.shifts.filter(shifts => shifts.definition.category == head.definition.category)
                                 .map(_.duration)
                                 .sum)
@@ -205,7 +233,7 @@ object ShiftManager2 {
             val shifts = s._2.get.shifts ::: List(head)
             val familyContract = contracts.find(contract => contract.id == s._2.get.contractId).get
             val shiftRule = familyContract.shiftRules.find(rules => rules.shiftDefinitionIds.contains(s._1.definition.id)).headOption.get
-            if(!exceedLimit(shifts, familyContract.globalLimits, s._1.date, s._1.definition.category) && !exceedLimit(shifts, shiftRule.limits, s._1.date, s._1.definition.category)) {
+            if(exceedLimit(shifts, familyContract.globalLimits.copy(None), s._1.date, s._1.definition.category, lessOrEqual) && exceedLimit(shifts, shiftRule.limits.copy(None), s._1.date, s._1.definition.category, lessOrEqual)) {
 //             if(!s._2.get.hasAShiftOnDay(head.date)) {
               if(!ShiftUtils.hasShiftOnDay(s._2.get.shifts, head.date)) {
                 s._2.get.addShift(head)
@@ -225,13 +253,13 @@ object ShiftManager2 {
                   .flatten
 
                 possibleSwaps.headOption match {
-                  case Some(s) => {
-                    val family = s.family.get
-                    family.removeShift(s)
-                    a = a.filter(j => j._1 != s)
+                  case Some(swap) => {
+                    val family = swap.family.get
+                    family.removeShift(swap)
+                    a = a.filter(j => j._1 != swap)
                     family.addShift(head)
                     a = a :+ (head, Option(family))
-                    c.addShift(s)
+                    c.addShift(swap)
                     a = a :+ (head, Option(c))
                   }
                   case None =>
@@ -251,7 +279,7 @@ object ShiftManager2 {
 
 //        (unresolved, assigned) //TODO remove
       }
-      case Nil => (unresolved, assigned)
+      case  Nil => (unresolved, assigned)
     }
   }
 

@@ -91,7 +91,7 @@ class CodeTests extends FunSuite {
       .filter(i => i._1 == w.head._1)
   }
 
-  test("1 family, 1 day") {
+  ignore("1 family, 1 day") {
     var fMoyens = mockFamilies(List("EMMA"))
     val firstWeekM = getShiftsInMonth(Month.NOVEMBER, moyenDay).toList.sortBy(_._1).head
     val mShiftsToResolve = Map(firstWeekM._1 -> firstWeekM._2.filter(s => s.date == firstWeekM._2.head.date)).toList
@@ -161,7 +161,7 @@ class CodeTests extends FunSuite {
     )
   }
 
-  test("november 2019") {
+  ignore("november 2019") {
 
     val MONTH = Month.NOVEMBER
 
