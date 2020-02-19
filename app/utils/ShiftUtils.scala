@@ -25,11 +25,8 @@ object ShiftUtils {
     })
 
   def groupShiftsByWeek(shifts:Array[ScheduledShift]) = {
-//    val (key, list) = shifts.span(_.date.getWeekYear)
     val groups = shifts.groupBy(_.date.get(Calendar.WEEK_OF_YEAR))
-//    val out = groups.map{ case (key, value) => ScheduledShift.getWeek(value.head) -> value.toList}
     val out = groups.map{ case (key, value) => value.head.date.get(Calendar.YEAR).toString.concat("_").concat(key.toString) -> value.toList}
-//    out.toList.sortBy(_._1)
-    List(out.toList.sortBy(_._1).lift(0).get)
+    out.toList.sortBy(_._1)
   }
 }

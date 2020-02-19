@@ -12,45 +12,20 @@ import scala.util.control.Breaks.{break, breakable}
 object ShiftManager2 {
 
   def resolve(_families:List[Family], weeksToResolve:List[(String, List[ScheduledShift])], contracts:List[Contract]) = {
-
     var families = _families
-
-//    var results:List[(ScheduledShift, Option[Family])] = List[(ScheduledShift, Option[Family])]()
     var results:(List[ScheduledShift], List[(ScheduledShift, Option[Family])]) = (List[ScheduledShift](), List[(ScheduledShift, Option[Family])]())
     for(week <- weeksToResolve) {
-
       val it = ShiftManager2.autoFillWeek(week._2
       , families
       , contracts
       )
-//      results = results ::: it
       results = (results._1 ::: it._1, results._2 ::: it._2)
       val af = families.sortBy(_.shifts.size)
       families = af
-      /**
-        * val it = ShiftManager.autoFillWeek(toto._2
-        * , families
-        * , limits
-        * //                  , Option("\n\n================ week ".concat(toto._1.toString).concat("================ "))
-        * )
-        * results = (results._1 ::: it._1, results._2 ::: it._2)
-        * val af = families.sortBy(_.shifts.size)
-        * families = af
-        */
     }
-
-//    val all = results
-//      .filter(r => r._2 match {
-//        case Some(fam) => true
-//        case None => false
-//      })
-//      .groupBy(_._2.get.id)
-//
-//    all
     results._2
   }
 
-//  def autoFillWeek(shifts:List[ScheduledShift], families:List[Family], contracts:List[Contract], debug:Option[String] = None) : List[(ScheduledShift, Option[Family])] = {
   def autoFillWeek(shifts:List[ScheduledShift], families:List[Family], contracts:List[Contract], debug:Option[String] = None):(List[ScheduledShift], List[(ScheduledShift, Option[Family])])  = {
     debug match {
       case Some(debugString) => {
@@ -58,8 +33,7 @@ object ShiftManager2 {
         val unassignedShifts = autoFilledShifts.filter(shift => shift._2.isEmpty)
         val assigned = autoFilledShifts.filterNot(unassignedShifts.contains(_))
         val out = ShiftManager2.resolveUnassigned(families, unassignedShifts.map(_._1), assigned, List[ScheduledShift](), contracts)
-        out //TODO correct output of ShiftManager2.resolveUnassigned and return it
-//        assigned //TODO remove
+        out
       }
       case None => {
         val autoFilledShifts = greedyAutoFill(shifts, families, contracts)
@@ -67,8 +41,7 @@ object ShiftManager2 {
         val toto = autoFilledShifts.map(s => s._1.definition.id)
         val assigned = autoFilledShifts.filterNot(unassignedShifts.contains(_))
         val out = ShiftManager2.resolveUnassigned(families, unassignedShifts.map(_._1), assigned, List[ScheduledShift](), contracts)
-        out //TODO correct output of ShiftManager2.resolveUnassigned and return it
-//        assigned //TODO remove
+        out
       }
     }
   }
@@ -83,19 +56,19 @@ object ShiftManager2 {
       //STEP 1 : find first family with no shifts for the week
       //TODO until API handles monthly limits we assume contract not exceeded
       if(families.filter(f => f.shifts.isEmpty).nonEmpty) {
-        println("NO SHIFTS : find first family with no shifts for the week and has all skills. " )
+//        println("NO SHIFTS : find first family with no shifts for the week and has all skills. " )
         val contenders = families
           .filter(f => f.shifts.isEmpty)
           .filter(f => Family.hasSkills(f, s.definition.skillsRequirements))
 
         val out = contenders.headOption match {
           case Some(contender) => {
-            println("NO SHIFTS, HAS SKILLS : Family " + contender.id + " found and shift added")
+//            println("NO SHIFTS, HAS SKILLS : Family " + contender.id + " found and shift added")
             contender.addShift(s)
             (s, Some(contender))
           }
           case None => {
-            println("NON SHIFTS, NO SKILLS : No family found")
+//            println("NON SHIFTS, NO SKILLS : No family found")
             val filteredResult = families
               .filter(f => Family.hasSkills(f, s.definition.skillsRequirements))
               .filter(f => contracts.find(c => c.id == f.contractId).isDefined)
@@ -117,7 +90,7 @@ object ShiftManager2 {
             filteredResult.headOption match {
               case Some(family) => {
                 family.addShift(s)
-                println("Found a family who has not exceeded either global or shift rule limits")
+//                println("Found a family who has not exceeded either global or shift rule limits")
 //                (s, Some(family))
               }
 //              case None => (s, None)
@@ -128,9 +101,9 @@ object ShiftManager2 {
         out
 //        (s, contenders.headOption)
       } else {
-        println("All families have at least 1 shift - continue to STEP 2")
+//        println("All families have at least 1 shift - continue to STEP 2")
 
-        println("STEP 2 : find family whose contract is not exceeded")
+//        println("STEP 2 : find family whose contract is not exceeded")
 
         val filteredResult = families
           .filter(f => Family.hasSkills(f, s.definition.skillsRequirements))
@@ -153,7 +126,7 @@ object ShiftManager2 {
         filteredResult.headOption match {
           case Some(family) => {
             family.addShift(s)
-            println("Found a family who has not exceeded either global or shift rule limits")
+//            println("Found a family who has not exceeded either global or shift rule limits")
             (s, Some(family))
           }
           case None => (s, None)

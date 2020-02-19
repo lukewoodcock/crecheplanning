@@ -26,19 +26,24 @@ object ScheduledShift {
 }
 case class ScheduledShift(override val id: String, definition: ShiftDefinition, date:Calendar, var family: Option[Family]) extends Identifiable[String](id){
 
-  def start: Date =  new SimpleDateFormat("yyyy-mm-dd hh:mm:ss")
-    .parse(new SimpleDateFormat("yyyy-mm-dd")
+  val DATE_FORMAT = "yyyy-mm-dd hh:mm:ss"
+
+  private def convertStringToDate(s: String): Date = {
+    val dateFormat = new SimpleDateFormat(DATE_FORMAT)
+    dateFormat.parse(s)
+  }
+
+  def start: Date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    .parse(new SimpleDateFormat("yyyy-MM-dd")
       .format(date.getTime)
       .concat(" ")
-      .concat(definition.startTime)
-    )
+      .concat(definition.startTime))
 
-  def end: Date = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss")
-    .parse(new SimpleDateFormat("yyyy-mm-dd")
-        .format(date.getTime)
-        .concat(" ")
-        .concat(definition.endTime)
-    )
+  def end: Date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    .parse(new SimpleDateFormat("yyyy-MM-dd")
+      .format(date.getTime)
+      .concat(" ")
+      .concat(definition.endTime))
 
   def duration: Long = Math.abs(end.getTime() - start.getTime())
 

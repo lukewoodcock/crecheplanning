@@ -37,7 +37,11 @@ object CoverUtils {
                 shiftDefinitions.find(definition => definition.id == c.shiftDefinitionId) match {
                   case Some(value) => {
                     val out = new Array[ScheduledShift](c.cover)
-                        .map(i => ScheduledShift(value.id.concat(": ").concat(DateUtils.getDateAsString(DateUtils.getCalendarDay(d).getTime)), value, DateUtils.getCalendarDay(d), None))
+                        .map(i => {
+                          val ss = ScheduledShift(value.id.concat(": ").concat(DateUtils.getDateAsString(DateUtils.getCalendarDay(d).getTime)), value, DateUtils.getCalendarDay(d), None)
+                          val start = ss.start
+                          ss
+                        })
                     out
 
                   }
