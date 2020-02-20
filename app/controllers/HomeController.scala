@@ -1,13 +1,12 @@
 package controllers
 
 import java.time.Month
-import java.util.Calendar
 
 import javax.inject._
 import model2._
-import model2.shifts.{ScheduledShift, ShiftDefinition}
+import model2.shifts.{ScheduledShiftResult, ShiftDefinition}
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{JsError, JsPath, Json, Reads}
+import play.api.libs.json._
 import play.api.mvc._
 import services.ShiftManager2
 import utils.{CoverUtils, DateUtils, ShiftUtils}
@@ -26,9 +25,8 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
    * a path of `/`.
    */
   def index = Action {
-    Ok(views.html.index("Hello world"))
+    Ok("TODO - read me\nPost json model to ./shifts")
   }
-
 
   implicit val shiftsReads: Reads[ShiftDefinition] = (
     (JsPath \ "id").read[String] and
@@ -108,6 +106,13 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
       (JsPath \ "dateAbsences").readNullable[List[Absence]]
     )(ScheduleRequirements.apply _)
 
+  implicit val ScheduledShiftResultWrites: Writes[ScheduledShiftResult] = (
+    (JsPath \ "id").write[String] and
+      (JsPath \ "start").write[String] and
+      (JsPath \ "end").write[String] and
+      (JsPath \ "family").write[String]
+  )(unlift(ScheduledShiftResult.unapply))
+
   def modelPost = Action(parse.json) { request =>
     val modelValidation = request.body.validate[Model]
     modelValidation.fold(
@@ -135,42 +140,22 @@ class HomeController @Inject()(cc: ControllerComponents) extends AbstractControl
                 BadRequest("Missing cover requirements")
               } else {
 
-                crModel.coverRequirements.foreach(cr => {
+                val month = CoverUtils.getMonth(crModel.coverRequirements.head, model.shifts)
+                if(crModel.shiftAbsences.isDefined) {
+                  Family.addAbsences(model.families, crModel.shiftAbsences.get)
+                }
 
+                if(crModel.dateAbsences.isDefined) {
+                  Family.addAbsences(model.families, crModel.dateAbsences.get)
+                }
 
-                  val out = CoverUtils.getMonth(cr, model.shifts)
-                  //          out.foreach(d => {
-                  //            println(d.id)
-                  //          })
+                val shifts = ShiftManager2.resolve(model.families, ShiftUtils.groupShiftsByWeek(month), model.contracts)
+                val result = shifts
+                  .groupBy(_._2)
 
-                  val grouped = ShiftUtils.groupShiftsByWeek(out)
-                  grouped.foreach(d => {
-                    println(d._1)
-                    d._2.foreach(s => {
-                      println(s.id)
-                    })
-                  })
-                })
+                val json = Json.toJson(month.map(s => ScheduledShiftResult.fromScheduledShift(s)))
 
-//                val shifts = crModel.coverRequirements.map(cr => {
-//                  val out = CoverUtils.getMonth(cr, model.shifts)
-//                  ShiftUtils.groupShiftsByWeek(out)
-//                })
-
-                val shifts = CoverUtils.getMonth(crModel.coverRequirements.head, model.shifts)
-
-                val result = ShiftManager2.resolve(model.families, ShiftUtils.groupShiftsByWeek(shifts), model.contracts)
-
-                result.groupBy(_._1.date.get(Calendar.WEEK_OF_YEAR)).foreach(r => {
-                  println("\n\nWeek : " + r._1)
-                  r._2
-                      .filter(s => s._2.get.contractId == 0)
-                    .foreach(s => {
-                    println(s._1)
-                  })
-                })
-
-                Ok(views.html.index("Hello world".concat(request.body.toString())))
+                Ok(json.toString())
               }
             }
           )

@@ -1,6 +1,6 @@
 package model2.shifts
 
-import java.text.{DateFormat, SimpleDateFormat}
+import java.text.SimpleDateFormat
 import java.util.{Calendar, Date}
 
 import model.Identifiable
@@ -20,6 +20,16 @@ import model2.Family
 
 case class ShiftDefinition(override val id: String, category: String, description: String, startTime: String, endTime: String, skillsRequirements:List[String]) extends Identifiable[String](id)
 
+object ScheduledShiftResult {
+  def fromScheduledShift(s:ScheduledShift) = {
+    ScheduledShiftResult(s.definition.id, s.start.toString, s.end.toString, s.family match {
+      case Some(value) => value.id
+      case None => "Undefined"}
+    )
+  }
+}
+
+case class ScheduledShiftResult(override val id: String, val start: String, val end: String, val family: String) extends Identifiable[String](id)
 
 object ScheduledShift {
   def getWeek(shift:ScheduledShift) = shift.date.get(Calendar.YEAR).toString.concat("_").concat(shift.date.get(Calendar.WEEK_OF_YEAR).toString)
@@ -53,13 +63,4 @@ case class ScheduledShift(override val id: String, definition: ShiftDefinition, 
       case None => "Shift: " + definition.id + ", Family: None, Date : " + this.start.toString
     }
   }
-
-//  override def toString() : String = {
-//    family match {
-//      case Some(f) => {
-//        "Shift: " + definition.id + ", family: " + f.id + ", date: " + date.getTime.toString
-//      }
-//      case None => "ShiftDefintion: No family"
-//    }
-//  }
 }
