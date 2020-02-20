@@ -1,10 +1,9 @@
 package services
 
 import java.util.Calendar
-import java.util.Locale.Category
 
-import model2.{Contract, Family, Limits}
 import model2.shifts.ScheduledShift
+import model2.{Contract, Family, Limits}
 import utils.ShiftUtils
 
 import scala.util.control.Breaks.{break, breakable}
@@ -59,6 +58,7 @@ object ShiftManager2 {
 //        println("NO SHIFTS : find first family with no shifts for the week and has all skills. " )
         val contenders = families
           .filter(f => f.shifts.isEmpty)
+          .filter(f => f.isAbsent(s) == false)
           .filter(f => Family.hasSkills(f, s.definition.skillsRequirements))
 
         val out = contenders.headOption match {
@@ -69,7 +69,11 @@ object ShiftManager2 {
           }
           case None => {
 //            println("NON SHIFTS, NO SKILLS : No family found")
+            //TODO extract **.**
             val filteredResult = families
+              .filter(f => {
+                f.isAbsent(s) == false
+              })
               .filter(f => Family.hasSkills(f, s.definition.skillsRequirements))
               .filter(f => contracts.find(c => c.id == f.contractId).isDefined)
               .filter(f => {
@@ -104,8 +108,11 @@ object ShiftManager2 {
 //        println("All families have at least 1 shift - continue to STEP 2")
 
 //        println("STEP 2 : find family whose contract is not exceeded")
-
+        //TODO extract **.**
         val filteredResult = families
+          .filter(f => {
+            f.isAbsent(s) == false
+          })
           .filter(f => Family.hasSkills(f, s.definition.skillsRequirements))
           .filter(f => contracts.find(c => c.id == f.contractId).isDefined)
           .filter(f => {
@@ -178,7 +185,6 @@ object ShiftManager2 {
       case head :: tail => {
 
         val lessOrEqual = (a: Int, b: Int) => a <= b
-        val two = families.filter(f => f.shifts.size < 3)
 
         // remove scheduled shifts whose family already meets quota
         // filter assigned shifts by id (shift type) and whose family has not exceed duration for that shift as per their contract
@@ -207,8 +213,7 @@ object ShiftManager2 {
             val familyContract = contracts.find(contract => contract.id == s._2.get.contractId).get
             val shiftRule = familyContract.shiftRules.find(rules => rules.shiftDefinitionIds.contains(s._1.definition.id)).headOption.get
             if(exceedLimit(shifts, familyContract.globalLimits.copy(None), s._1.date, s._1.definition.category, lessOrEqual) && exceedLimit(shifts, shiftRule.limits.copy(None), s._1.date, s._1.definition.category, lessOrEqual)) {
-//             if(!s._2.get.hasAShiftOnDay(head.date)) {
-              if(!ShiftUtils.hasShiftOnDay(s._2.get.shifts, head.date)) {
+              if(!s._2.get.isAbsent(head) && !ShiftUtils.hasShiftOnDay(s._2.get.shifts, head.date)) {
                 s._2.get.addShift(head)
                 a = a :+ (head, s._2)
                 break
@@ -220,6 +225,7 @@ object ShiftManager2 {
                 //all shifts on different days to c shifts
                 val cDates = c.shifts.map(s => s.date)
                 val possibleSwaps = families
+                  .filter(f => f.isAbsent(head) == false)
                   .filter(f => f != c)
                   .map(f => f.getShiftsByCategoryForWeek(ScheduledShift.getWeek(head), head))
                   .map(shifts => ShiftUtils.filterShiftsByDates(cDates, shifts))
@@ -247,19 +253,8 @@ object ShiftManager2 {
         } else {
           resolveUnassigned(families, tail, assigned, unresolved ::: List(head), contracts)
         }
-
-
-
-//        (unresolved, assigned) //TODO remove
       }
       case  Nil => (unresolved, assigned)
     }
   }
-
-//  private def doesBreachContract(contract: Contract, shifts: List[ScheduledShift], family:Family) = {
-//    val familyContract = contracts.find(contract => contract.id == family.contractId).get
-//    val weekNumber = s._1.date.get(Calendar.WEEK_OF_YEAR)
-//    val shiftRule = familyContract.shiftRules.find(rules => rules.shiftDefinitionIds.contains(s._1.definition.id)).headOption.get
-//    !exceedLimit(family, familyContract.globalLimits, s._1, weekNumber) && !exceedLimit(family, shiftRule.limits, s._1, weekNumber)
-//  }
 }

@@ -8,15 +8,23 @@ import utils.DateUtils
 
 import scala.collection.mutable.{HashMap, ListBuffer}
 
-
-//trait Contracted {
-////  def assignContracts(families:Array[Family], contracts:Array[Contract]) = families.foreach(f => contracts)
-//  var contract:Int
-//}
-
 object Family {
   def hasSkill(family: Family, skill:String) = family.skills.contains(skill)
   def hasSkills(family: Family, skills:List[String]) = skills.forall(s => family.skills.contains(s))
+  def addAbsences(families: List[Family], absences: List[Absence]) = {
+    val abs = absences.groupBy(_.familyId)
+    families.foreach(f => {
+
+      if(f.id.equalsIgnoreCase("MARCEAU"))
+        println("MARCEAU")
+
+
+      abs.get(f.id) match {
+        case Some(value) => f.absences ++= value
+        case None =>
+      }
+    })
+  }
 }
 
 /**
@@ -35,6 +43,22 @@ object Family {
 case class Family(override val id: String, contractId: Int, name: String, skills:List[String]) extends Identifiable[String](id) {
 
   var contract: Option[Contract] = None
+  val absences: ListBuffer[Absence] = ListBuffer[Absence]()
+
+  def isPresent(scheduledShift: ScheduledShift) = !isAbsent(scheduledShift)
+  def isAbsent(scheduledShift: ScheduledShift) = {
+
+    this.absences.find(a => a.toCalendarDate == scheduledShift.date) match {
+      case Some(abs) => {
+        abs.shiftId match {
+          case Some(id) => scheduledShift.definition.id == id
+          case None => true
+        }
+      }
+      case None => false
+    }
+  }
+
 
   def shifts = mappedShifts
     .values
